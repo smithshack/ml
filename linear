@@ -1,0 +1,78 @@
+#Linear
+
+import numpy as np
+import pandas as pd
+from sklearn import datasets
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import mean_squared_error, r2_score
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+diabetes = datasets.load_diabetes()
+diabetes_df = pd.DataFrame(data=diabetes.data, columns=diabetes.feature_names)
+diabetes_df['target'] = diabetes.target
+
+
+#EDA = shape, columns, null values , summary statistics
+print("\nDataset Shape:", diabetes_df.shape)
+print("\nColumns:", diabetes_df.columns)
+print("\nInfo:")
+print(diabetes_df.info())
+print("\nNull Values:")
+print(diabetes_df.isnull().sum())
+print("\nSummary Staistics ",diabetes_df.describe())
+
+
+
+plt.figure(figsize=(8, 6))
+sns.histplot(diabetes_df['target'], bins=30, kde=True, color='blue')
+plt.title('Distribution of Diabetes Progression')
+plt.xlabel('Diabetes Progression')
+plt.ylabel('Frequency')
+plt.show()
+
+
+#pairplot 
+plt.figure(figsize=(12, 10))
+sns.pairplot(diabetes_df, diag_kind='kde')
+plt.suptitle("Pairplot of Diabetes Dataset", y=1.02)
+plt.show()
+
+#Linear Regression
+
+# Split the dataset into features (X) and target (y)
+X = diabetes_df.drop('target', axis=1)  # Features
+y = diabetes_df['target']               # Target (continuous variable)
+
+
+
+# Split the data into training and testing sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+
+# Initialize the Linear Regression model
+model = LinearRegression()
+
+# Train the model on the training data
+model.fit(X_train, y_train)
+
+# Make predictions on the test data
+y_pred = model.predict(X_test)
+
+
+# Evaluate the model's performance
+mse = mean_squared_error(y_test, y_pred)
+r2 = r2_score(y_test, y_pred)
+
+print("\nMean Squared Error (MSE):", mse)
+print("R-squared Score:", r2)
+
+# Plot predicted vs actual values
+plt.figure(figsize=(8, 6))
+plt.scatter(y_test, y_pred, color='blue')
+plt.plot([y_test.min(), y_test.max()], [y_test.min(), y_test.max()], linestyle='--', color='red')
+plt.xlabel('Actual Diabetes Progression')
+plt.ylabel('Predicted Diabetes Progression')
+plt.title('Actual vs Predicted (Diabetes Dataset)')
+plt.show()
