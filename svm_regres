@@ -1,0 +1,84 @@
+#svm regress
+
+
+import pandas as pd
+from sklearn.datasets import fetch_california_housing
+from sklearn.preprocessing import StandardScaler
+from sklearn.model_selection import train_test_split
+from sklearn.svm import SVR
+from sklearn.metrics import mean_squared_error, r2_score
+import seaborn as sns  # For visualization
+import matplotlib.pyplot as plt  # For visualization
+
+# Load data
+data = fetch_california_housing()
+X = pd.DataFrame(data.data, columns=data.feature_names)
+y = data.target
+
+
+
+# Print basic info about the data
+print(X.describe())  # Summary statistics
+print(X.head())      # View first few rows
+# Check for missing values
+print("Missing values:", X.isnull().sum())
+
+
+# Exploratory Data Analysis (EDA)
+# Visualize the distribution of the target variable (median house value)
+sns.distplot(y)
+plt.xlabel("Median House Value")
+plt.ylabel("Density")
+plt.title("Distribution of Median House Values")
+plt.show()
+
+
+# Data Preprocessing
+# Scale features (SVM regressor is sensitive to feature scales)
+scaler = StandardScaler()
+X_scaled = scaler.fit_transform(X)
+# Split Data into Training and Testing Sets
+X_train, X_test, y_train, y_test = train_test_split(X_scaled, y, test_size=0.2, random_state=42)
+# Train the SVM Regressor
+svr = SVR(kernel='rbf')  # Experiment with 'linear' or other kernels
+svr.fit(X_train, y_train)
+
+# Make Predictions and Evaluate Performance
+y_pred = svr.predict(X_test)
+mse = mean_squared_error(y_test, y_pred)
+r2 = r2_score(y_test, y_pred)
+
+print("Mean Squared Error:", mse)
+print("R-squared:", r2)
+
+from sklearn.model_selection import GridSearchCV
+from sklearn.svm import SVR
+
+
+
+# Define a parameter grid to explore
+param_grid = {
+    'kernel': ['linear', 'rbf'],  # Experiment with different kernels
+    'C': [0.01, 0.1, 1, 10, 100],  # Regularization parameter
+    'gamma': [0.001, 0.01, 0.1, 1],  # Gamma for RBF kernel (optional)
+}
+
+# Create the GridSearchCV object
+grid_search = GridSearchCV(SVR(), param_grid, cv=5)  # 5-fold cross-validation
+
+# Fit the grid search to the training data
+grid_search.fit(X_train, y_train)
+
+# Get the best model and its parameters
+best_model = grid_search.best_estimator_
+best_params = grid_search.best_params_
+
+# Use the best model for prediction and evaluation
+y_pred = best_model.predict(X_test)
+
+mse = mean_squared_error(y_test, y_pred)
+r2 = r2_score(y_test, y_pred)
+
+print("Mean Squared Error:", mse)
+print("R-squared:", r2)
+print("Best Hyperparameters:", best_params)
